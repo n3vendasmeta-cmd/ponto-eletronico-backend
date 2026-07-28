@@ -26,7 +26,7 @@ export class AuthController {
   @ApiBearerAuth('access-token')
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async me(@CurrentUser() user: User) {
-    return await this.authService.me(user);
+  me(@CurrentUser() user: User) {
+    return this.authService.me(user);
   }
 }

@@ -6,6 +6,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
 import { UserRole } from '../enums/user-role.enum';
 
 @Entity('users')
@@ -22,11 +23,7 @@ export class User {
   @Column({ name: 'password_hash', type: 'varchar', length: 255 })
   passwordHash!: string;
 
-  @Column({
-    type: 'varchar',
-    length: 30,
-    default: UserRole.EMPLOYEE,
-  })
+  @Column({ type: 'varchar', length: 30, default: UserRole.EMPLOYEE })
   role!: UserRole;
 
   @Column({ type: 'bit', default: true })

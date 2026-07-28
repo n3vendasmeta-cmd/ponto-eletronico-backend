@@ -25,7 +25,10 @@ export class AuthService {
       throw new UnauthorizedException('E-mail ou senha inválidos.');
     }
 
-    const passwordIsValid = await bcrypt.compare(loginDto.password, user.passwordHash);
+    const passwordIsValid = await bcrypt.compare(
+      loginDto.password,
+      user.passwordHash,
+    );
 
     if (!passwordIsValid) {
       throw new UnauthorizedException('E-mail ou senha inválidos.');
@@ -36,11 +39,15 @@ export class AuthService {
 
   async refresh(refreshToken: string) {
     try {
-      const refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+      const refreshSecret =
+        this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
 
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
-        secret: refreshSecret,
-      });
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(
+        refreshToken,
+        {
+          secret: refreshSecret,
+        },
+      );
 
       const user = await this.usersService.findById(payload.sub);
 
@@ -62,7 +69,7 @@ export class AuthService {
     }
   }
 
-  async me(user: User): Promise<UserResponseDto> {
+  me(user: User): UserResponseDto {
     return this.usersService.toUserResponse(user);
   }
 
@@ -73,8 +80,11 @@ export class AuthService {
       role: user.role,
     };
 
-    const refreshSecret = this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
-    const refreshExpiresIn = this.configService.getOrThrow<StringValue>('JWT_REFRESH_EXPIRES_IN');
+    const refreshSecret =
+      this.configService.getOrThrow<string>('JWT_REFRESH_SECRET');
+    const refreshExpiresIn = this.configService.getOrThrow<StringValue>(
+      'JWT_REFRESH_EXPIRES_IN',
+    );
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
