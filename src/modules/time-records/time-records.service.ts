@@ -38,11 +38,17 @@ export class TimeRecordsService {
   }
 
   public async register(userId: string): Promise<TimeRecord> {
+    // Busca a última batida de ponto do usuário
     const lastRecord = await this.getLastRecord(userId);
+    // Determina o próximo tipo de batida de ponto com base na última batida
     const nextRecordType = this.getNextRecordType(lastRecord?.type);
 
-    throw new Error(
-      `Método ainda em implementação. Próximo tipo: ${nextRecordType}`,
-    );
+    const timeRecord = this.timeRecordRepository.create({
+      userId,
+      type: nextRecordType,
+      recordedAt: new Date(),
+    });
+
+    return this.timeRecordRepository.save(timeRecord);
   }
 }
