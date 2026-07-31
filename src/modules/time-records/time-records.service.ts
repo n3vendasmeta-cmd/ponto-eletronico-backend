@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { TimeRecordResponseDto } from './dto/time-record-response.dto';
 import { TimeRecord } from './entities/time-record.entity';
 import { TimeRecordType } from './enums/time-record-type.enum';
 
@@ -12,6 +13,15 @@ export class TimeRecordsService {
     private readonly timeRecordRepository: Repository<TimeRecord>,
   ) {}
 
+  private toResponseDto(timeRecord: TimeRecord): TimeRecordResponseDto {
+    return {
+      id: timeRecord.id,
+      type: timeRecord.type,
+      recordedAt: timeRecord.recordedAt,
+      source: timeRecord.source,
+      notes: timeRecord.notes ?? null,
+    };
+  }
   private getNextRecordType(lastRecordType?: TimeRecordType): TimeRecordType {
     switch (lastRecordType) {
       case TimeRecordType.CLOCK_IN:
@@ -37,7 +47,7 @@ export class TimeRecordsService {
     });
   }
 
-  public async register(userId: string): Promise<TimeRecord> {
+  public async register(userId: string): Promise<TimeRecordResponseDto> {
     // Busca a última batida de ponto do usuário
     const lastRecord = await this.getLastRecord(userId);
     // Determina o próximo tipo de batida de ponto com base na última batida
@@ -49,11 +59,13 @@ export class TimeRecordsService {
       recordedAt: new Date(),
     });
 
-    return this.timeRecordRepository.save(timeRecord);
+    const savedtimeRecord = await this.timeRecordRepository.save(timeRecord);
+
+    return this.toResponseDto(savedtimeRecord);
   }
 
-  public async list(userId: string): Promise<TimeRecord[]> {
-    return this.timeRecordRepository.find({
+  public async list(userId: string): Promise<TimeRecordResponseDto[]> {
+    const timeRecords = await this.timeRecordRepository.find({
       where: {
         userId,
       },
@@ -61,5 +73,7 @@ export class TimeRecordsService {
         recordedAt: 'DESC',
       },
     });
+
+    return timeRecords.map((timeRecord) => this.toResponseDto(timeRecord));
   }
 }
