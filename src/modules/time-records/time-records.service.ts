@@ -51,4 +51,15 @@ export class TimeRecordsService {
 
     return this.timeRecordRepository.save(timeRecord);
   }
+
+  public async list(userId: string): Promise<TimeRecord[]> {
+    return this.timeRecordRepository.find({
+      where: {
+        userId,
+      },
+      order: {
+        recordedAt: 'DESC',
+      },
+    });
+  }
 }
