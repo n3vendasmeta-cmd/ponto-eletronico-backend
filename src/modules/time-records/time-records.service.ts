@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -22,6 +22,7 @@ export class TimeRecordsService {
       notes: timeRecord.notes ?? null,
     };
   }
+
   private getNextRecordType(lastRecordType?: TimeRecordType): TimeRecordType {
     switch (lastRecordType) {
       case TimeRecordType.CLOCK_IN:
@@ -47,10 +48,28 @@ export class TimeRecordsService {
     });
   }
 
+  private validateMinimumInterval(lastRecord: TimeRecord | null): void {
+    if (!lastRecord) {
+      return;
+    }
+
+    const currentTime = new Date().getTime();
+    const lastRecordTime = lastRecord.recordedAt.getTime();
+    const elapsedTimeInMilliseconds = currentTime - lastRecordTime;
+    const minimumIntervalInMilliseconds = 60 * 1000;
+
+    if (elapsedTimeInMilliseconds < minimumIntervalInMilliseconds) {
+      throw new BadRequestException(
+        'Aguarde pelo menos 1 minuto antes de registrar um novo ponto.',
+      );
+    }
+  }
+
   public async register(userId: string): Promise<TimeRecordResponseDto> {
-    // Busca a última batida de ponto do usuário
     const lastRecord = await this.getLastRecord(userId);
-    // Determina o próximo tipo de batida de ponto com base na última batida
+
+    this.validateMinimumInterval(lastRecord);
+
     const nextRecordType = this.getNextRecordType(lastRecord?.type);
 
     const timeRecord = this.timeRecordRepository.create({
@@ -59,9 +78,9 @@ export class TimeRecordsService {
       recordedAt: new Date(),
     });
 
-    const savedtimeRecord = await this.timeRecordRepository.save(timeRecord);
+    const savedTimeRecord = await this.timeRecordRepository.save(timeRecord);
 
-    return this.toResponseDto(savedtimeRecord);
+    return this.toResponseDto(savedTimeRecord);
   }
 
   public async list(userId: string): Promise<TimeRecordResponseDto[]> {

@@ -15,12 +15,12 @@ export class TimeRecordResponseDto {
 
   @ApiProperty({
     example: '2026-07-30T13:45:22.000Z',
-    description: 'Date and time when the record was created',
+    description: 'Date and time of the time record',
   })
   recordedAt: Date;
 
   @ApiProperty({
-    example: 'MANUAL',
+    example: 'WEB',
     description: 'Source that created the time record',
   })
   source: string;

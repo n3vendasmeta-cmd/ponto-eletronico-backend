@@ -1,12 +1,19 @@
 import { Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 
-import { ApiOkResponse } from '@nestjs/swagger';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
 import { TimeRecordResponseDto } from './dto/time-record-response.dto';
 import { TimeRecordsService } from './time-records.service';
+
 @ApiTags('Time Records')
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard)
@@ -21,6 +28,13 @@ export class TimeRecordsController {
     description: 'Time record successfully registered',
     type: TimeRecordResponseDto,
   })
+  @ApiBadRequestResponse({
+    description:
+      'Aguarde pelo menos 1 minuto antes de registrar um novo ponto.',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
   @Post('register')
   register(@CurrentUser() user: User) {
     return this.timeRecordsService.register(user.id);
@@ -33,6 +47,9 @@ export class TimeRecordsController {
     description: 'List of authenticated user time records',
     type: TimeRecordResponseDto,
     isArray: true,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
   })
   @Get()
   list(@CurrentUser() user: User) {
