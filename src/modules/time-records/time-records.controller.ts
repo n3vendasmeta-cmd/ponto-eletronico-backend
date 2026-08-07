@@ -1,4 +1,4 @@
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBearerAuth,
@@ -11,6 +11,7 @@ import {
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { User } from '../users/entities/user.entity';
+import { TimeRecordFilterDto } from './dto/time-record-filter.dto';
 import { TimeRecordResponseDto } from './dto/time-record-response.dto';
 import { TimeRecordsService } from './time-records.service';
 
@@ -52,7 +53,7 @@ export class TimeRecordsController {
     description: 'Unauthorized',
   })
   @Get()
-  list(@CurrentUser() user: User) {
-    return this.timeRecordsService.list(user.id);
+  list(@CurrentUser() user: User, @Query() filter: TimeRecordFilterDto) {
+    return this.timeRecordsService.list(user.id, filter);
   }
 }

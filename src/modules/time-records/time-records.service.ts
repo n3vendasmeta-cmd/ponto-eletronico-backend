@@ -8,6 +8,8 @@ import { TimeRecordType } from './enums/time-record-type.enum';
 
 @Injectable()
 export class TimeRecordsService {
+  private static readonly MINIMUM_INTERVAL_IN_MILLISECONDS = 60 * 1000;
+
   constructor(
     @InjectRepository(TimeRecord)
     private readonly timeRecordRepository: Repository<TimeRecord>,
@@ -56,9 +58,11 @@ export class TimeRecordsService {
     const currentTime = new Date().getTime();
     const lastRecordTime = lastRecord.recordedAt.getTime();
     const elapsedTimeInMilliseconds = currentTime - lastRecordTime;
-    const minimumIntervalInMilliseconds = 60 * 1000;
 
-    if (elapsedTimeInMilliseconds < minimumIntervalInMilliseconds) {
+    if (
+      elapsedTimeInMilliseconds <
+      TimeRecordsService.MINIMUM_INTERVAL_IN_MILLISECONDS
+    ) {
       throw new BadRequestException(
         'Aguarde pelo menos 1 minuto antes de registrar um novo ponto.',
       );
@@ -83,11 +87,15 @@ export class TimeRecordsService {
     return this.toResponseDto(savedTimeRecord);
   }
 
-  public async list(userId: string): Promise<TimeRecordResponseDto[]> {
+  public async list(
+    userId: string,
+    filter: TimeRecordFilterDto,
+  ): Promise<TimeRecordResponseDto[]> {
+    const where = {
+      userId,
+    };
     const timeRecords = await this.timeRecordRepository.find({
-      where: {
-        userId,
-      },
+      where,
       order: {
         recordedAt: 'DESC',
       },
