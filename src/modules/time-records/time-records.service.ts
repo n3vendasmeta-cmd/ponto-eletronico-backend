@@ -1,7 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import {
+  Between,
+  FindOptionsWhere,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+  Repository,
+} from 'typeorm';
 
+import { TimeRecordFilterDto } from './dto/time-record-filter.dto';
 import { TimeRecordResponseDto } from './dto/time-record-response.dto';
 import { TimeRecord } from './entities/time-record.entity';
 import { TimeRecordType } from './enums/time-record-type.enum';
@@ -91,9 +98,26 @@ export class TimeRecordsService {
     userId: string,
     filter: TimeRecordFilterDto,
   ): Promise<TimeRecordResponseDto[]> {
-    const where = {
+    const where: FindOptionsWhere<TimeRecord> = {
       userId,
     };
+
+    const startDate = filter.startDate
+      ? new Date(`${filter.startDate}T00:00:00.000`)
+      : undefined;
+
+    const endDate = filter.endDate
+      ? new Date(`${filter.endDate}T23:59:59.999`)
+      : undefined;
+
+    if (startDate && endDate) {
+      where.recordedAt = Between(startDate, endDate);
+    } else if (startDate) {
+      where.recordedAt = MoreThanOrEqual(startDate);
+    } else if (endDate) {
+      where.recordedAt = LessThanOrEqual(endDate);
+    }
+
     const timeRecords = await this.timeRecordRepository.find({
       where,
       order: {
