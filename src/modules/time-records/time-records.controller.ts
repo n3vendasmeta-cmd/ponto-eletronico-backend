@@ -49,6 +49,9 @@ export class TimeRecordsController {
     type: TimeRecordResponseDto,
     isArray: true,
   })
+  @ApiBadRequestResponse({
+    description: 'Data inicial ou final em formato inválido.',
+  })
   @ApiUnauthorizedResponse({
     description: 'Unauthorized',
   })
